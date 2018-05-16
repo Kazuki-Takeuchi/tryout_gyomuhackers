@@ -1,0 +1,13 @@
+env:
+  browser: true
+extends:
+  - standard
+  - prettier
+  - prettier/standard
+rules:
+  # デバッガ有効
+  no-debugger: off
+  # varで変数宣言は禁止
+  no-var: error
+  # 原則letよりconstを使う
+  prefer-const: error
