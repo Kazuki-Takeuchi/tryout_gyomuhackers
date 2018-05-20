@@ -118,6 +118,41 @@
     return blob
   }
 
+  function updateCheckOutputCsv (output_record_ids) {
+    let allPromise = []
+    output_record_ids.forEach(function (id) {
+      let body = {
+        app: kintone.app.getId(),
+        id: id,
+        record: {
+          check_output_CSV: {
+            value: ['済']
+          }
+        }
+      }
+
+      let promise = new kintone.Promise(function (resolve, reject) {
+        kintone.api(
+          kintone.api.url('/k/v1/record', true),
+          'PUT',
+          body,
+          function (resp) {
+            // success
+            console.log(resp)
+            resolve()
+          },
+          function (error) {
+            // error
+            console.log(error)
+            reject()
+          }
+        )
+      })
+      allPromise.push(promise)
+    })
+    return kintone.Promise.all(allPromise)
+  }
+
   async function downloadCsv () {
     let output_record_ids = []
     let blob = await createExpensesCsv(output_record_ids)
@@ -127,6 +162,10 @@
     link.href = (window.URL || window.webkitURL).createObjectURL(blob)
     link.download = 'download.csv'
     link.click()
+
+    updateCheckOutputCsv(output_record_ids).then(function () {
+      location.reload
+    })
   }
 
   kintone.events.on('app.record.index.show', function (event) {
