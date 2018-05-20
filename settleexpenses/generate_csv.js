@@ -50,14 +50,14 @@
     searchQuery,
     fields,
     appId,
-    opt_offset,
-    opt_limit,
-    opt_records
+    optOffset,
+    optLimit,
+    optRecords
   ) {
-    var offset = opt_offset || 0
-    var limit = opt_limit || 100
-    var allRecords = opt_records || []
-    var params = {
+    const offset = optOffset || 0
+    const limit = optLimit || 100
+    let allRecords = optRecords || []
+    const params = {
       app: appId,
       query: searchQuery + ' limit ' + limit + ' offset ' + offset,
       fields: fields
@@ -87,41 +87,52 @@
     })
   }
 
+  const str2array = function (str) {
+    const array = []
+    const il = str.length
+    for (let i = 0; i < il; i++) {
+      array.push(str.charCodeAt(i))
+    }
+    return array
+  }
+
   // 経費データCSV作成
-  async function createExpensesCsv (output_record_ids) {
-    let csv = []
-    var now = new Date()
-    let query =
+  async function createExpensesCsv (outputRecordIds) {
+    const csv = []
+    const query =
       'check_approved in ("済") and ' +
       'acquisition_date = LAST_MONTH() and ' +
       'check_output_CSV not in ("済") ' +
       'order by レコード番号 asc'
     console.log(query)
-    let records = await fetchRecords(query, [], kintone.app.getId())
+    const records = await fetchRecords(query, [], kintone.app.getId())
     records.forEach(record => {
-      let row = []
-      for (let key in record) {
-        let collumn = record[key].value
+      const row = []
+      for (const key in record) {
+        const collumn = record[key].value
         // console.log(JSON.stringify(collumn))
         row.push(JSON.stringify(collumn))
       }
-      output_record_ids.push(record['$id'].value)
+      outputRecordIds.push(record['$id'].value)
       csv.push(row)
     })
-    let csvbuf = csv
+    const csvbuf = csv
       .map(function (e) {
         return e.join(',')
       })
       .join('\r\n')
-    let bom = new Uint8Array([0xef, 0xbb, 0xbf])
-    let blob = new Blob([bom, csvbuf], { type: 'text/csv' })
+
+    const array = str2array(csvbuf)
+    const sjisArray = Encoding.convert(array, 'SJIS', 'UNICODE')
+    const uint8Array = new Uint8Array(sjisArray)
+    const blob = new Blob([uint8Array], { type: 'text/csv' })
     return blob
   }
 
-  function updateCheckOutputCsv (output_record_ids) {
-    let allPromise = []
-    output_record_ids.forEach(function (id) {
-      let body = {
+  function updateCheckOutputCsv (outputRecordIds) {
+    const allPromise = []
+    outputRecordIds.forEach(function (id) {
+      const body = {
         app: kintone.app.getId(),
         id: id,
         record: {
@@ -131,7 +142,7 @@
         }
       }
 
-      let promise = new kintone.Promise(function (resolve, reject) {
+      const promise = new kintone.Promise(function (resolve, reject) {
         kintone.api(
           kintone.api.url('/k/v1/record', true),
           'PUT',
@@ -154,17 +165,17 @@
   }
 
   async function downloadCsv () {
-    let output_record_ids = []
-    let blob = await createExpensesCsv(output_record_ids)
-    console.log(output_record_ids)
+    const outputRecordIds = []
+    const blob = await createExpensesCsv(outputRecordIds)
+    console.log(outputRecordIds)
 
-    let link = document.createElement('a')
+    const link = document.createElement('a')
     link.href = (window.URL || window.webkitURL).createObjectURL(blob)
     link.download = 'download.csv'
     link.click()
 
-    updateCheckOutputCsv(output_record_ids).then(function () {
-      location.reload
+    updateCheckOutputCsv(outputRecordIds).then(function () {
+      location.reload()
     })
   }
 
