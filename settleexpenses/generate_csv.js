@@ -15,7 +15,7 @@
 
   const createOutputCsvButton = function () {
     const $outputCsvButton = $('<button>', {
-      id: 'output_csv',
+      id: 'button_output_csv',
       text: 'CSV出力'
     }).click(function () {
       $('#dialog_output_csv').dialog({
@@ -45,7 +45,7 @@
       $(kintone.app.getHeaderSpaceElement()).append(createDialog())
     }
 
-    if (!$('#output_csv')[0]) {
+    if (!$('#button_output_csv')[0]) {
       $(kintone.app.getHeaderMenuSpaceElement()).append(createOutputCsvButton())
     }
   })
