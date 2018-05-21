@@ -143,8 +143,7 @@
     // 16 税額
     row.push('')
     // 17 摘要
-    const payee = ''
-    const summary = payee + ':' + record['item'].value
+    const summary = record['item'].value
     row.push(summary)
     // --------------------------貸方
     // 18 貸方・科目（小口現金の場合は1118）
