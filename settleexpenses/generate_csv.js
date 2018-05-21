@@ -96,6 +96,95 @@
     return array
   }
 
+  function createCsvRow (record) {
+    const row = []
+    // 1 処理区分
+    row.push('1')
+    // 2 データID
+    row.push('')
+    // 3 伝票日付
+    row.push(record['acquisition_date'].value)
+    // 4 伝票番号
+    row.push('')
+    // 5 入力日付
+    // --------------------------借方
+    row.push('')
+    // 6 借方・科目
+    const itemOfExpenseCode = record['item_of_expense_code'].value
+    row.push(itemOfExpenseCode.slice(-4))
+    // 7 補助コード
+    if (itemOfExpenseCode.indexOf('外注費') !== -1) {
+      row.push('13')
+    } else {
+      row.push('')
+    }
+    // 8 部門コード
+    row.push('')
+    // 9 取引先コード
+    row.push('')
+    // 10 取引先名
+    row.push('')
+    // 11 税種別
+    const genkaCodes = ['外注費', '広告宣伝費', 'ｺﾐｯｼｮﾝ料', 'SaaS代', '仕入外注費']
+    let genka = '60'
+    if (genkaCodes.find(code => itemOfExpenseCode.indexOf(code) >= 0)) {
+      genka = '50' // 原価の場合
+    }
+    row.push(genka)
+    // 12 事業区分
+    row.push('1')
+    // 13 税率
+    row.push('8') // 税率8%
+    // 14 内外別記
+    row.push('1') // 内税表記は1
+    // 15 金額
+    const price = record['price'].value
+    row.push(price)
+    // 16 税額
+    row.push('')
+    // 17 摘要
+    const payee = ''
+    const summary = payee + ':' + record['item'].value
+    row.push(summary)
+    // --------------------------貸方
+    // 18 貸方・科目（小口現金の場合は1118）
+    const name = record['name'].value
+    if (name === '小口現金') {
+      row.push('1118')
+    } else {
+      row.push('2114')
+    }
+    // 19 補助コード
+    const user = record['user_json'].value
+      .split(',')
+      .find(userId => userId.indexOf(name) > 0)
+    if (user) {
+      row.push(user.split(':')[1])
+    }
+    // 20 部門コード
+    row.push('')
+    // 21 取引先コード
+    row.push('')
+    // 22 取引先名
+    row.push('')
+    // 23 税種別
+    row.push(genka)
+    // 24 事業区分
+    row.push('1')
+    // 25 税率
+    row.push('8') // 税率8%
+    // 26 内外別記
+    row.push('1') // 内税表記は1
+    // 27 金額
+    row.push(price)
+    // 28 税額
+    row.push('')
+    // 29 摘要
+    row.push(summary)
+
+    return row
+  }
+
   // 経費データCSV作成
   async function createExpensesCsv (outputRecordIds) {
     const csv = []
@@ -107,12 +196,8 @@
     console.log(query)
     const records = await fetchRecords(query, [], kintone.app.getId())
     records.forEach(record => {
-      const row = []
-      for (const key in record) {
-        const collumn = record[key].value
-        // console.log(JSON.stringify(collumn))
-        row.push(JSON.stringify(collumn))
-      }
+      const row = createCsvRow(record)
+      console.log(row)
       outputRecordIds.push(record['$id'].value)
       csv.push(row)
     })
@@ -171,7 +256,12 @@
 
     const link = document.createElement('a')
     link.href = (window.URL || window.webkitURL).createObjectURL(blob)
-    link.download = 'download.csv'
+    const today = new Date()
+    let month = today.getMonth() + 1
+    month = ('00' + month).slice(-2)
+    let date = today.getDate()
+    date = ('00' + date).slice(-2)
+    link.download = '未払計上仕訳_' + today.getFullYear() + month + date + '.csv'
     link.click()
 
     updateCheckOutputCsv(outputRecordIds).then(function () {
