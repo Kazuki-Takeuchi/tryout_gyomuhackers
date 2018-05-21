@@ -193,7 +193,7 @@
       'check_approved in ("済") and ' +
       'acquisition_date = LAST_MONTH() and ' +
       'check_output_CSV not in ("済") ' +
-      'order by レコード番号 asc'
+      'order by acquisition_date asc'
     console.log(query)
     const records = await fetchRecords(query, [], kintone.app.getId())
     records.forEach(record => {
@@ -265,9 +265,9 @@
     link.download = '未払計上仕訳_' + today.getFullYear() + month + date + '.csv'
     link.click()
 
-    updateCheckOutputCsv(outputRecordIds).then(function () {
-      location.reload()
-    })
+    // updateCheckOutputCsv(outputRecordIds).then(function () {
+    //   location.reload()
+    // })
   }
 
   kintone.events.on('app.record.index.show', function (event) {
