@@ -265,9 +265,9 @@
     link.download = '未払計上仕訳_' + today.getFullYear() + month + date + '.csv'
     link.click()
 
-    // updateCheckOutputCsv(outputRecordIds).then(function () {
-    //   location.reload()
-    // })
+    updateCheckOutputCsv(outputRecordIds).then(function () {
+      location.reload()
+    })
   }
 
   kintone.events.on('app.record.index.show', function (event) {
