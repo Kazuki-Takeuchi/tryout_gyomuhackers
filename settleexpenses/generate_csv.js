@@ -160,6 +160,8 @@
       .find(userId => userId.indexOf(name) > 0)
     if (user) {
       row.push(user.split(':')[1])
+    } else {
+      row.push('')
     }
     // 20 部門コード
     row.push('')
